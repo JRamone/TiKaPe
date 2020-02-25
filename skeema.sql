@@ -1,0 +1,3 @@
+CREATE TABLE Tuotteet (id INTEGER PRIMARY KEY, nimi TEXT, hinta INTEGER);
+CREATE TABLE Asiakkaat (id INTEGER PRIMARY KEY, nimi TEXT);
+CREATE TABLE Ostokset (tuote_id INTEGER, asiakas_id INTEGER);
