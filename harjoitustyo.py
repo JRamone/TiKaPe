@@ -1,6 +1,7 @@
 
 import sqlite3
-from datetime import datetime
+from datetime import datetime, time
+import re
 
 
 
@@ -95,7 +96,7 @@ def lisaaTapahtuma(c):
             print("VIRHE: Kyseisellä nimellä ei löydy paikkaa")
             return
         kuvaus = input("Anna tapahtuman kuvaus:")
-        aika = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+        aika = datetime.now().strftime("%d-%m-%Y, %H:%M:%S")
         c.execute("SELECT id FROM Paikat WHERE nimi=?",(paikka,))
         paikka_id = c.fetchone()[0]
         c.execute("SELECT id FROM Paketit WHERE seurantakoodi=?",(koodi,))
@@ -125,19 +126,39 @@ def haeSeurantakoodilla(c):
     pass
 
 def haeAsiakkaanPaketit(c):
-    asiakas = input("Anna asiakkaan nimi:")
-    c.execute("SELECT id FROM Asiakkaat WHERE nimi=?",(asiakas,))
-    asiakas_id = c.fetchone()[0]
-    if asiakas_id == None:
+    try:
+        asiakas = input("Anna asiakkaan nimi:")
+        c.execute("SELECT id FROM Asiakkaat WHERE nimi=?",(asiakas,))
+        asiakas_id = c.fetchone()[0]
+        if asiakas_id == None:
             print("Asiakasta ei löytynyt")
-    else:
-        c.execute("SELECT seurantakoodi, COUNT(paketti_id) FROM Paketit LEFT JOIN Tapahtumat ON Paketit.id = Tapahtumat.paketti_id WHERE asiakas_id = ? GROUP BY paketti_id",(asiakas_id,))
-        tiedot = c.fetchall()
-        for x in tiedot:
-            print ("Seurantakoodi: " + str(x[0]) + "\t Tapahtumia yhteensä : " + str(x[1]) +"kpl")
-    pass
+        else:
+            c.execute("SELECT seurantakoodi, COUNT(paketti_id) FROM Paketit LEFT JOIN Tapahtumat ON Paketit.id = Tapahtumat.paketti_id WHERE asiakas_id = ? GROUP BY paketti_id",(asiakas_id,))
+            tiedot = c.fetchall()
+            for x in tiedot:
+                print ("Seurantakoodi: " + str(x[0]) + "\t Tapahtumia yhteensä : " + str(x[1]) +"kpl")
+        pass
+    except:
+        print("Metodissa haeAsiakkaanPaketit tapahtui odottamaton virhe.")
 
 def haeTapahtumienMäärä(c):
+    paikka = input("Anna paikan nimi:")
+    c.execute("SELECT id FROM paikat WHERE nimi = ?", (paikka,))
+    paikka_id = c.fetchone()[0]
+    if paikka_id == None:
+        print("Paikkaa ei ole olemassa")
+    else:
+        try:
+            pvm = input("Anna päivämäärä muodossa PP.KK.VVVV ")
+            pvm2 = datetime.strptime(pvm, "%d.%m.%Y")
+            pvm3 = datetime.strftime(pvm2,"%d-%m-%Y")
+            pvm3 += "%"
+        except:
+            print("Syötit päivämäärän väärin.")
+            return
+        c.execute("SELECT COUNT (id) FROM tapahtumat WHERE paikka_id=? AND aika LIKE ? GROUP BY paikka_id",(paikka_id,pvm3))
+        print("Tapahtumien määrä: " + str(c.fetchone()[0]))
+
     pass
 
 def suoritaTehokkuustesti(c):
