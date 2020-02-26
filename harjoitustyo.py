@@ -107,6 +107,42 @@ def lisaaTapahtuma(c):
         print("Metodissa lisaaTapahtuma() tapahtui odottamaton virhe.")
     pass
 
+def haeSeurantakoodilla(c):
+    try:
+        koodi = input("Anna seurantakoodi:")
+        c.execute("SELECT id FROM Paketit WHERE seurantakoodi=?",(koodi,))
+        paketti_id = c.fetchone()[0]
+        if paketti_id == None:
+            print("Pakettia ei löytynyt")
+        else:
+            c.execute("SELECT aika,nimi,kuvaus FROM Tapahtumat,Paikat WHERE Paikat.id = Tapahtumat.paikka_id AND paketti_id=?",(paketti_id,))
+            tiedot = c.fetchall()
+            for x in tiedot:
+                print (x)
+
+    except:
+        print("Metodissa haeSeurantakoodilla() tapahtui odottamaton virhe.")
+    pass
+
+def haeAsiakkaanPaketit(c):
+    asiakas = input("Anna asiakkaan nimi:")
+    c.execute("SELECT id FROM Asiakkaat WHERE nimi=?",(asiakas,))
+    asiakas_id = c.fetchone()[0]
+    if asiakas_id == None:
+            print("Asiakasta ei löytynyt")
+    else:
+        c.execute("SELECT seurantakoodi, COUNT(paketti_id) FROM Paketit LEFT JOIN Tapahtumat ON Paketit.id = Tapahtumat.paketti_id WHERE asiakas_id = ? GROUP BY paketti_id",(asiakas_id,))
+        tiedot = c.fetchall()
+        for x in tiedot:
+            print ("Seurantakoodi: " + str(x[0]) + "\t Tapahtumia yhteensä : " + str(x[1]) +"kpl")
+    pass
+
+def haeTapahtumienMäärä(c):
+    pass
+
+def suoritaTehokkuustesti(c):
+    pass
+
 #Pääohjelma
 print("-" * 80)
 print("Tervetuloa paketinseurantajärjestelmään!")
@@ -136,13 +172,13 @@ while True:
     elif (komento == '5'):
         lisaaTapahtuma(c)
     elif (komento == '6'):
-        print("Tapahtumat haettu")
+        haeSeurantakoodilla(c)
     elif (komento == '7'):
-        print("Pakettit haettu")
+        haeAsiakkaanPaketit(c)
     elif (komento == '8'):
-        print("Tapahtumien määrä haettu")
+        haeTapahtumienMäärä(c)
     elif (komento == '9'):
-        print("Tehokkuustesti suoritettu")
+        suoritaTehokkuustesti(c)
     elif (komento == 'x'):
         kanta.close()
         print("-" * 80)
