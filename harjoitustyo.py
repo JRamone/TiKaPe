@@ -23,7 +23,7 @@ def alusta(c):
         c.execute("CREATE TABLE Asiakkaat(id INTEGER PRIMARY KEY, nimi TEXT, UNIQUE(nimi));")
         c.execute("CREATE TABLE Paketit(id INTEGER PRIMARY KEY,asiakas_id INTEGER REFERENCES Asiakkaat, seurantakoodi TEXT, UNIQUE(seurantakoodi));")
         c.execute("CREATE TABLE Tapahtumat(id INTEGER PRIMARY KEY,aika TEXT, paketti_id INTEGER REFERENCES Paketit, paikka_id INTEGER REFERENCES Paikat ,kuvaus TEXT);")
-        c.execute("CREATE INDEX idx_paketti_id ON Tapahtumat (paketti_id)")
+        #c.execute("CREATE INDEX idx_paketti_id ON Tapahtumat (paketti_id)")
         print("tietokanta luotu")
     except:
         print("Jotakin meni vikaan.")
@@ -168,49 +168,52 @@ def haeTapahtumienMäärä(c):
     pass
 
 def suoritaTehokkuustesti(c):
-   
-    paikat = []
-    asiakkaat = []
-    paketit = []
+    try:
+        paikat = []
+        asiakkaat = []
+        paketit = []
 
-    alku_aika = time.time()
+        alku_aika = time.time()
 
-    c.execute("BEGIN TRANSACTION")
-    for i in range(1000):
-        paikat.append("P" + str(i+1))
-        c.execute("INSERT INTO Paikat (nimi) VALUES (?)", (paikat[i],))
-    print("1000 Paikkaa lisätty ajassa: \t\t\t" + str(round(time.time() - alku_aika,6))+ " sek")
+        c.execute("BEGIN TRANSACTION")
+        for i in range(1000):
+            paikat.append("P" + str(i+1))
+            c.execute("INSERT INTO Paikat (nimi) VALUES (?)", (paikat[i],))
+        print("1000 Paikkaa lisätty ajassa: \t\t\t" + str(round(time.time() - alku_aika,6))+ " sek")
 
-    alku_aika = time.time()
-    for i in range(1000):
-        asiakkaat.append("A" + str(i+1))
-        c.execute("INSERT INTO Asiakkaat (nimi) VALUES (?)", (asiakkaat[i],))
-    print("1000 Asiakasta lisätty ajassa: \t\t\t" + str(round(time.time() - alku_aika,6))+ " sek")
+        alku_aika = time.time()
+        for i in range(1000):
+            asiakkaat.append("A" + str(i+1))
+            c.execute("INSERT INTO Asiakkaat (nimi) VALUES (?)", (asiakkaat[i],))
+        print("1000 Asiakasta lisätty ajassa: \t\t\t" + str(round(time.time() - alku_aika,6))+ " sek")
 
-    alku_aika = time.time()
-    random.shuffle(asiakkaat)
-    for i in range(1000):
-        paketit.append("Paketti" + str(i+1))
-        c.execute("INSERT INTO Paketit (asiakas_id,seurantakoodi) VALUES (?,?)", (random.choice(asiakkaat)[1:],paketit[i])) #Asiakas_id ja seurantakoodi
-    print("1000 Pakettia lisätty ajassa: \t\t\t" + str(round(time.time() - alku_aika,6))+ " sek")
+        alku_aika = time.time()
+        random.shuffle(asiakkaat)
+        for i in range(1000):
+            paketit.append("Paketti" + str(i+1))
+            c.execute("INSERT INTO Paketit (asiakas_id,seurantakoodi) VALUES (?,?)", (random.choice(asiakkaat)[1:],paketit[i])) #Asiakas_id ja seurantakoodi
+        print("1000 Pakettia lisätty ajassa: \t\t\t" + str(round(time.time() - alku_aika,6))+ " sek")
 
-    alku_aika = time.time()
-    tapahtumat = []
-    for i in range(1000000):
-        tapahtumat.append("Tapahtuma" + str(i+1))
-        c.execute("INSERT INTO Tapahtumat (aika,paketti_id,paikka_id,kuvaus) VALUES (?,?,?,?)", [datetime.now().strftime("%d-%m-%Y, %H:%M:%S"),random.choice(paketit)[7:],random.choice(paikat)[1:],tapahtumat[i]])
-    print("1000000 Tapahtumaa lisätty ajassa: \t\t" + str(round(time.time() - alku_aika,6))+ " sek")
-    c.execute("COMMIT")
+        alku_aika = time.time()
+        tapahtumat = []
+        for i in range(1000000):
+            tapahtumat.append("Tapahtuma" + str(i+1))
+            c.execute("INSERT INTO Tapahtumat (aika,paketti_id,paikka_id,kuvaus) VALUES (?,?,?,?)", [datetime.now().strftime("%d-%m-%Y, %H:%M:%S"),random.choice(paketit)[7:],random.choice(paikat)[1:],tapahtumat[i]])
+        print("1000000 Tapahtumaa lisätty ajassa: \t\t" + str(round(time.time() - alku_aika,6))+ " sek")
+        c.execute("COMMIT")
 
-    alku_aika = time.time()
-    for i in range(1000):
-        c.execute("SELECT COUNT (id) FROM Paketit WHERE asiakas_id = ?", (random.choice(asiakkaat)[1:],))
-    print("1000 Pakettikyselyä suoritettu ajassa: \t\t" + str(round(time.time() - alku_aika,6))+ " sek")
+        alku_aika = time.time()
+        for i in range(1000):
+            c.execute("SELECT COUNT (id) FROM Paketit WHERE asiakas_id = ?", (random.choice(asiakkaat)[1:],))
+        print("1000 Pakettikyselyä suoritettu ajassa: \t\t" + str(round(time.time() - alku_aika,6))+ " sek")
 
-    alku_aika = time.time()
-    for i in range(1000):
-        c.execute("SELECT COUNT (paketti_id) FROM Tapahtumat WHERE paketti_id = ?", (random.choice(paketit)[7:],))
-    print("1000 Tapahtumakyselyä suoritettu ajassa:\t" + str(round(time.time() - alku_aika,6)) + " sek")
+        alku_aika = time.time()
+        for i in range(1000):
+            c.execute("SELECT COUNT (paketti_id) FROM Tapahtumat WHERE paketti_id = ?", (random.choice(paketit)[7:],))
+        print("1000 Tapahtumakyselyä suoritettu ajassa:\t" + str(round(time.time() - alku_aika,6)) + " sek")
+    except:
+        print("Tehokkuustestissä meni jotakin pieleen. Suoritithan testin tyhjään tietokantaan?")
+        return
     pass
 
 
